@@ -12,7 +12,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.andexert.library.InitRippleView;
 import com.andexert.library.RippleView;
 
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ public class MainActivity extends ActionBarActivity
         else
             setContentView(R.layout.activity_main_list);
 
-        final RippleView rippleView = (RippleView) findViewById(R.id.rect);
+        final InitRippleView rippleView = (InitRippleView) findViewById(R.id.rect);
         final TextView textView = (TextView) findViewById(R.id.rect_child);
         final Toolbar toolbar = (Toolbar) findViewById(R.id.actionbar);
 
@@ -42,12 +44,13 @@ public class MainActivity extends ActionBarActivity
             @Override
             public void onClick(View v)
             {
+                Toast.makeText(MainActivity.this,"rippleView click" ,Toast.LENGTH_SHORT).show();
                 Log.e("Sample", "Click Rect !");
             }
         });
-        rippleView.setOnRippleCompleteListener(new RippleView.OnRippleCompleteListener() {
+        rippleView.setOnRippleCompleteListener(new InitRippleView.OnRippleCompleteListener() {
             @Override
-            public void onComplete(RippleView rippleView) {
+            public void onComplete(InitRippleView rippleView) {
                 Log.d("Sample", "Ripple completed");
             }
         });
@@ -108,6 +111,7 @@ public class MainActivity extends ActionBarActivity
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id)
                 {
+                    Toast.makeText(MainActivity.this,"ripple child click" ,Toast.LENGTH_SHORT).show();
                     Log.e("MainActivity", "ListView tap item : " + position);
                 }
             });

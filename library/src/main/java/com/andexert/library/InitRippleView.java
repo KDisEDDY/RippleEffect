@@ -37,7 +37,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.ColorRes;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.animation.Animation;
@@ -54,7 +53,7 @@ import android.widget.RelativeLayout;
  * @author Chutaux Robin
  * @version 2015.0512
  */
-public class RippleView extends RelativeLayout {
+public class InitRippleView extends RelativeLayout {
 
     private int WIDTH;
     private int HEIGHT;
@@ -80,8 +79,6 @@ public class RippleView extends RelativeLayout {
     private int rippleColor;
     private int ripplePadding;
     private GestureDetector gestureDetector;
-    private boolean mIsLongPress = false;
-    private boolean mIsLongPressFinish = true;
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -91,16 +88,16 @@ public class RippleView extends RelativeLayout {
 
     private OnRippleCompleteListener onCompletionListener;
 
-    public RippleView(Context context) {
+    public InitRippleView(Context context) {
         super(context);
     }
 
-    public RippleView(Context context, AttributeSet attrs) {
+    public InitRippleView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
 
-    public RippleView(Context context, AttributeSet attrs, int defStyle) {
+    public InitRippleView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context, attrs);
     }
@@ -139,8 +136,6 @@ public class RippleView extends RelativeLayout {
             @Override
             public void onLongPress(MotionEvent event) {
                 super.onLongPress(event);
-                mIsLongPress = true;
-                mIsLongPressFinish = false;
                 animateRipple(event);
                 sendClickEvent(true);
             }
@@ -154,16 +149,7 @@ public class RippleView extends RelativeLayout {
             public boolean onSingleTapUp(MotionEvent e) {
                 return true;
             }
-        }){
-            @Override
-            public boolean onTouchEvent(MotionEvent ev) {
-                if((ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) && mIsLongPress){
-                    mIsLongPressFinish = true;
-                    invalidate();
-                }
-                return super.onTouchEvent(ev);
-            }
-        };
+        });
 
         this.setDrawingCacheEnabled(true);
         this.setClickable(true);
@@ -184,19 +170,15 @@ public class RippleView extends RelativeLayout {
                 if(Build.VERSION.SDK_INT != 23) {
                     canvas.restore();
                 }
+                invalidate();
                 if (onCompletionListener != null) onCompletionListener.onComplete(this);
-                if(!mIsLongPressFinish) {
-                    canvas.drawCircle(x, y, radiusMax, paint);
-                } else {
-                    canvas.drawCircle(x, y, 0, paint);
-                    resetLongPressState();
-                }
                 return;
             } else
                 canvasHandler.postDelayed(runnable, frameRate);
 
             if (timer == 0)
                 canvas.save();
+
 
             canvas.drawCircle(x, y, (radiusMax * (((float) timer * frameRate) / rippleDuration)), paint);
 
@@ -219,13 +201,9 @@ public class RippleView extends RelativeLayout {
                     paint.setAlpha((int) (rippleAlpha - ((rippleAlpha) * (((float) timerEmpty * frameRate) / (durationEmpty)))));
                 else
                     paint.setAlpha(rippleAlpha);
-            } else{
-                if(mIsLongPress){
-                    paint.setAlpha(rippleAlpha);
-                } else {
-                    paint.setAlpha((int) (rippleAlpha - ((rippleAlpha) * (((float) timer * frameRate) / rippleDuration))));
-                }
             }
+            else
+                paint.setAlpha((int) (rippleAlpha - ((rippleAlpha) * (((float) timer * frameRate) / rippleDuration))));
 
             timer++;
         }
@@ -272,11 +250,9 @@ public class RippleView extends RelativeLayout {
         if (this.isEnabled() && !animationRunning) {
             if (hasToZoom)
                 this.startAnimation(scaleAnimation);
-//            float disX = x - getLeft() > getRight() - x ? x - getLeft() : getRight() - x ;
-//            float disY = y - getTop() > getBottom() - y ? y - getTop() : getBottom() - y;
-//            radiusMax = Math.max(disX, disY);
 
             radiusMax = Math.max(WIDTH, HEIGHT);
+
             if (rippleType != 2)
                 radiusMax /= 2;
 
@@ -356,13 +332,13 @@ public class RippleView extends RelativeLayout {
      * @param rippleColor New color resource
      */
     @ColorRes
-	public void setRippleColor(int rippleColor) {
-		this.rippleColor = getResources().getColor(rippleColor);
-	}
+    public void setRippleColor(int rippleColor) {
+        this.rippleColor = getResources().getColor(rippleColor);
+    }
 
-	public int getRippleColor() {
-		return rippleColor;
-	}
+    public int getRippleColor() {
+        return rippleColor;
+    }
 
     public RippleType getRippleType()
     {
@@ -507,7 +483,7 @@ public class RippleView extends RelativeLayout {
      * Defines a callback called at the end of the Ripple effect
      */
     public interface OnRippleCompleteListener {
-        void onComplete(RippleView rippleView);
+        void onComplete(InitRippleView initRippleView);
     }
 
     public enum RippleType {
@@ -521,11 +497,5 @@ public class RippleView extends RelativeLayout {
         {
             this.type = type;
         }
-    }
-
-    /** 重置长按状态 */
-    private void resetLongPressState(){
-        mIsLongPress = false;
-        mIsLongPressFinish = true;
     }
 }

@@ -85,21 +85,18 @@
     </RelativeLayout>
     </android.support.v7.widget.Toolbar>
 
-    <com.andexert.library.RippleView
+    <com.andexert.library.InitRippleView
         android:id="@+id/rect"
         android:layout_width="wrap_content"
         android:layout_below="@+id/actionbar"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="30dp"
         android:layout_height="wrap_content"
-        ripple:rv_type="rectangle"
-        android:background="@drawable/selector_row"
         android:padding="20dp"
+        ripple:rv_rippleDuration="400"
         ripple:rv_zoom="true">
 
         <TextView
             android:id="@+id/rect_child"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_centerInParent="true"
             android:textColor="@android:color/white"
@@ -108,7 +105,7 @@
             android:text="Hello World!"
             android:background="@android:color/holo_green_light"/>
 
-    </com.andexert.library.RippleView>
+    </com.andexert.library.InitRippleView>
 
     <android.support.v7.widget.RecyclerView
         android:layout_below="@+id/rect"

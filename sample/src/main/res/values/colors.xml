@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="common_title_shadow">#8df91a</color><!-- 标题阴影色 -->
+    <color name="common_title_normal">#ddfcac</color>
+</resources>
