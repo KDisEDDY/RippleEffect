@@ -50,7 +50,7 @@
 
 
 
-        <com.andexert.library.RippleView
+        <com.andexert.library.RippleLayout
             android:id="@+id/more"
             android:layout_width="?android:actionBarSize"
             android:layout_height="?android:actionBarSize"
@@ -64,9 +64,9 @@
                 android:layout_gravity="center"
                 android:padding="10dp"
                 android:background="@android:color/holo_blue_dark"/>
-        </com.andexert.library.RippleView>
+        </com.andexert.library.RippleLayout>
 
-        <com.andexert.library.RippleView
+        <com.andexert.library.RippleLayout
             android:id="@+id/more2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -80,7 +80,7 @@
             android:layout_gravity="center"
             android:padding="10dp"
             android:background="@android:color/holo_blue_dark"/>
-        </com.andexert.library.RippleView>
+        </com.andexert.library.RippleLayout>
 
     </RelativeLayout>
     </android.support.v7.widget.Toolbar>

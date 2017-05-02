@@ -24,6 +24,7 @@
 
 package com.andexert.library;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -35,9 +36,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.ColorRes;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.animation.Animation;
@@ -50,11 +49,12 @@ import android.widget.RelativeLayout;
  * RippleView custom layout
  *
  * Custom Layout that allows to use Ripple UI pattern above API 21
- *
+ * it must have the only one child View
  * @author Chutaux Robin
+ * @update EDDY
  * @version 2015.0512
  */
-public class RippleView extends RelativeLayout {
+public class RippleLayout extends RelativeLayout {
 
     private int WIDTH;
     private int HEIGHT;
@@ -91,16 +91,16 @@ public class RippleView extends RelativeLayout {
 
     private OnRippleCompleteListener onCompletionListener;
 
-    public RippleView(Context context) {
+    public RippleLayout(Context context) {
         super(context);
     }
 
-    public RippleView(Context context, AttributeSet attrs) {
+    public RippleLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
 
-    public RippleView(Context context, AttributeSet attrs, int defStyle) {
+    public RippleLayout(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context, attrs);
     }
@@ -115,18 +115,18 @@ public class RippleView extends RelativeLayout {
         if (isInEditMode())
             return;
 
-        final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RippleView);
-        rippleColor = typedArray.getColor(R.styleable.RippleView_rv_color, getResources().getColor(R.color.rippelColor));
-        rippleType = typedArray.getInt(R.styleable.RippleView_rv_type, 0);
-        hasToZoom = typedArray.getBoolean(R.styleable.RippleView_rv_zoom, false);
-        isCentered = typedArray.getBoolean(R.styleable.RippleView_rv_centered, false);
-        rippleDuration = typedArray.getInteger(R.styleable.RippleView_rv_rippleDuration, rippleDuration);
-        frameRate = typedArray.getInteger(R.styleable.RippleView_rv_framerate, frameRate);
-        rippleAlpha = typedArray.getInteger(R.styleable.RippleView_rv_alpha, rippleAlpha);
-        ripplePadding = typedArray.getDimensionPixelSize(R.styleable.RippleView_rv_ripplePadding, 0);
+        final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RippleLayout);
+        rippleColor = typedArray.getColor(R.styleable.RippleLayout_rv_color, getResources().getColor(R.color.rippelColor));
+        rippleType = typedArray.getInt(R.styleable.RippleLayout_rv_type, 2);
+        hasToZoom = typedArray.getBoolean(R.styleable.RippleLayout_rv_zoom, false);
+        isCentered = typedArray.getBoolean(R.styleable.RippleLayout_rv_centered, false);
+        rippleDuration = typedArray.getInteger(R.styleable.RippleLayout_rv_rippleDuration, rippleDuration);
+        frameRate = typedArray.getInteger(R.styleable.RippleLayout_rv_framerate, frameRate);
+        rippleAlpha = typedArray.getInteger(R.styleable.RippleLayout_rv_alpha, rippleAlpha);
+        ripplePadding = typedArray.getDimensionPixelSize(R.styleable.RippleLayout_rv_ripplePadding, 0);
         canvasHandler = new Handler();
-        zoomScale = typedArray.getFloat(R.styleable.RippleView_rv_zoomScale, 1.03f);
-        zoomDuration = typedArray.getInt(R.styleable.RippleView_rv_zoomDuration, 200);
+        zoomScale = typedArray.getFloat(R.styleable.RippleLayout_rv_zoomScale, 1.03f);
+        zoomDuration = typedArray.getInt(R.styleable.RippleLayout_rv_zoomDuration, 200);
         typedArray.recycle();
         paint = new Paint();
         paint.setAntiAlias(true);
@@ -142,7 +142,6 @@ public class RippleView extends RelativeLayout {
                 mIsLongPress = true;
                 mIsLongPressFinish = false;
                 animateRipple(event);
-                sendClickEvent(true);
             }
 
             @Override
@@ -158,7 +157,7 @@ public class RippleView extends RelativeLayout {
             @Override
             public boolean onTouchEvent(MotionEvent ev) {
                 if((ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) && mIsLongPress){
-                    mIsLongPressFinish = true;
+                    resetLongPressState();
                     invalidate();
                 }
                 return super.onTouchEvent(ev);
@@ -185,11 +184,11 @@ public class RippleView extends RelativeLayout {
                     canvas.restore();
                 }
                 if (onCompletionListener != null) onCompletionListener.onComplete(this);
+                if(!mIsLongPress){
+                    sendClickEvent(false);
+                }
                 if(!mIsLongPressFinish) {
                     canvas.drawCircle(x, y, radiusMax, paint);
-                } else {
-                    canvas.drawCircle(x, y, 0, paint);
-                    resetLongPressState();
                 }
                 return;
             } else
@@ -272,9 +271,6 @@ public class RippleView extends RelativeLayout {
         if (this.isEnabled() && !animationRunning) {
             if (hasToZoom)
                 this.startAnimation(scaleAnimation);
-//            float disX = x - getLeft() > getRight() - x ? x - getLeft() : getRight() - x ;
-//            float disY = y - getTop() > getBottom() - y ? y - getTop() : getBottom() - y;
-//            radiusMax = Math.max(disX, disY);
 
             radiusMax = Math.max(WIDTH, HEIGHT);
             if (rippleType != 2)
@@ -303,15 +299,16 @@ public class RippleView extends RelativeLayout {
     public boolean onTouchEvent(MotionEvent event) {
         if (gestureDetector.onTouchEvent(event)) {
             animateRipple(event);
-            sendClickEvent(false);
         }
         return super.onTouchEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        this.onTouchEvent(event);
-        return super.onInterceptTouchEvent(event);
+       /* this.onTouchEvent(event);
+        return super.onInterceptTouchEvent(event);*/
+        //在RippleView里面拦截了事件
+        return true;
     }
 
     /**
@@ -319,6 +316,7 @@ public class RippleView extends RelativeLayout {
      *
      * @param isLongClick Is the event a long click ?
      */
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
     private void sendClickEvent(final Boolean isLongClick) {
         if (getParent() instanceof AdapterView) {
             final AdapterView adapterView = (AdapterView) getParent();
@@ -331,6 +329,8 @@ public class RippleView extends RelativeLayout {
                 if (adapterView.getOnItemClickListener() != null)
                     adapterView.getOnItemClickListener().onItemClick(adapterView, this, position, id);
             }
+        }else {
+            this.getChildAt(0).callOnClick();
         }
     }
 
@@ -355,14 +355,13 @@ public class RippleView extends RelativeLayout {
      *
      * @param rippleColor New color resource
      */
-    @ColorRes
-	public void setRippleColor(int rippleColor) {
-		this.rippleColor = getResources().getColor(rippleColor);
-	}
+    public void setRippleColor(int rippleColor) {
+        this.rippleColor = getResources().getColor(rippleColor);
+    }
 
-	public int getRippleColor() {
-		return rippleColor;
-	}
+    public int getRippleColor() {
+        return rippleColor;
+    }
 
     public RippleType getRippleType()
     {
@@ -507,10 +506,10 @@ public class RippleView extends RelativeLayout {
      * Defines a callback called at the end of the Ripple effect
      */
     public interface OnRippleCompleteListener {
-        void onComplete(RippleView rippleView);
+        void onComplete(RippleLayout rippleLayout);
     }
 
-    public enum RippleType {
+    private enum RippleType {
         SIMPLE(0),
         DOUBLE(1),
         RECTANGLE(2);

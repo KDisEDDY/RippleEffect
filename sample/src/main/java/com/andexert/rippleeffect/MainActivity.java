@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.andexert.library.InitRippleView;
-import com.andexert.library.RippleView;
 
 import java.util.ArrayList;
 

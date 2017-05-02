@@ -18,7 +18,7 @@
         android:background="@drawable/ripple_item"
         android:layout_centerInParent="true"
         />
-    <com.andexert.library.RippleView
+    <com.andexert.library.RippleLayout
         android:id="@+id/rv_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -31,5 +31,5 @@
             android:layout_height="wrap_content"
             android:text="Hello World!"
             />
-    </com.andexert.library.RippleView>
+    </com.andexert.library.RippleLayout>
 </RelativeLayout>
