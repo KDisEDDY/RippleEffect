@@ -59,7 +59,8 @@ public class RippleLayout extends RelativeLayout {
     private int WIDTH;
     private int HEIGHT;
     private int frameRate = 10;
-    private int rippleDuration = 400;
+    private int longRippleDuration = 1000;
+    private int rippleDuration = longRippleDuration;
     private int rippleAlpha = 90;
     private Handler canvasHandler;
     private float radiusMax = 0;
@@ -80,8 +81,8 @@ public class RippleLayout extends RelativeLayout {
     private int rippleColor;
     private int ripplePadding;
     private GestureDetector gestureDetector;
+    private int mActionState = MotionEvent.ACTION_CANCEL;
     private boolean mIsLongPress = false;
-    private boolean mIsLongPressFinish = true;
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -90,6 +91,7 @@ public class RippleLayout extends RelativeLayout {
     };
 
     private OnRippleCompleteListener onCompletionListener;
+    private boolean mIsEnable = true;
 
     public RippleLayout(Context context) {
         super(context);
@@ -117,7 +119,7 @@ public class RippleLayout extends RelativeLayout {
 
         final TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RippleLayout);
         rippleColor = typedArray.getColor(R.styleable.RippleLayout_rv_color, getResources().getColor(R.color.rippelColor));
-        rippleType = typedArray.getInt(R.styleable.RippleLayout_rv_type, 2);
+        rippleType = typedArray.getInt(R.styleable.RippleLayout_rv_type, RippleType.RECTANGLE.type);
         hasToZoom = typedArray.getBoolean(R.styleable.RippleLayout_rv_zoom, false);
         isCentered = typedArray.getBoolean(R.styleable.RippleLayout_rv_centered, false);
         rippleDuration = typedArray.getInteger(R.styleable.RippleLayout_rv_rippleDuration, rippleDuration);
@@ -139,8 +141,8 @@ public class RippleLayout extends RelativeLayout {
             @Override
             public void onLongPress(MotionEvent event) {
                 super.onLongPress(event);
+                setRippleDuration(longRippleDuration);
                 mIsLongPress = true;
-                mIsLongPressFinish = false;
                 animateRipple(event);
             }
 
@@ -156,8 +158,9 @@ public class RippleLayout extends RelativeLayout {
         }){
             @Override
             public boolean onTouchEvent(MotionEvent ev) {
-                if((ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_CANCEL) && mIsLongPress){
-                    resetLongPressState();
+                mActionState = ev.getAction();
+                if(ev.getAction() == MotionEvent.ACTION_UP){
+                    setRippleDuration(100);
                     invalidate();
                 }
                 return super.onTouchEvent(ev);
@@ -183,19 +186,28 @@ public class RippleLayout extends RelativeLayout {
                 if(Build.VERSION.SDK_INT != 23) {
                     canvas.restore();
                 }
+                switch (mActionState){
+                    case MotionEvent.ACTION_CANCEL:
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        canvas.drawCircle(x, y, radiusMax, paint);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        canvas.drawCircle(x, y, radiusMax, paint);
+                        sendClickEvent(false);
+                        invalidate();
+                        break;
+                }
                 if (onCompletionListener != null) onCompletionListener.onComplete(this);
-                if(!mIsLongPress){
-                    sendClickEvent(false);
-                }
-                if(!mIsLongPressFinish) {
-                    canvas.drawCircle(x, y, radiusMax, paint);
-                }
                 return;
-            } else
-                canvasHandler.postDelayed(runnable, frameRate);
+            } else{
+
+            }
+            canvasHandler.postDelayed(runnable, frameRate);
 
             if (timer == 0)
                 canvas.save();
+
 
             canvas.drawCircle(x, y, (radiusMax * (((float) timer * frameRate) / rippleDuration)), paint);
 
@@ -218,7 +230,7 @@ public class RippleLayout extends RelativeLayout {
                     paint.setAlpha((int) (rippleAlpha - ((rippleAlpha) * (((float) timerEmpty * frameRate) / (durationEmpty)))));
                 else
                     paint.setAlpha(rippleAlpha);
-            } else{
+            } else {
                 if(mIsLongPress){
                     paint.setAlpha(rippleAlpha);
                 } else {
@@ -248,7 +260,9 @@ public class RippleLayout extends RelativeLayout {
      * @param event MotionEvent registered by the Ripple gesture listener
      */
     public void animateRipple(MotionEvent event) {
-        createAnimation(event.getX(), event.getY());
+        if(mIsEnable){
+            createAnimation(event.getX(), event.getY());
+        }
     }
 
     /**
@@ -258,7 +272,9 @@ public class RippleLayout extends RelativeLayout {
      * @param y Vertical position of the ripple center
      */
     public void animateRipple(final float x, final float y) {
-        createAnimation(x, y);
+        if(mIsEnable){
+            createAnimation(x, y);
+        }
     }
 
     /**
@@ -298,6 +314,7 @@ public class RippleLayout extends RelativeLayout {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (gestureDetector.onTouchEvent(event)) {
+            mIsLongPress = false;
             animateRipple(event);
         }
         return super.onTouchEvent(event);
@@ -305,10 +322,8 @@ public class RippleLayout extends RelativeLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-       /* this.onTouchEvent(event);
-        return super.onInterceptTouchEvent(event);*/
-        //在RippleView里面拦截了事件
-        return true;
+        this.onTouchEvent(event);
+        return super.onInterceptTouchEvent(event);
     }
 
     /**
@@ -316,7 +331,6 @@ public class RippleLayout extends RelativeLayout {
      *
      * @param isLongClick Is the event a long click ?
      */
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
     private void sendClickEvent(final Boolean isLongClick) {
         if (getParent() instanceof AdapterView) {
             final AdapterView adapterView = (AdapterView) getParent();
@@ -329,8 +343,6 @@ public class RippleLayout extends RelativeLayout {
                 if (adapterView.getOnItemClickListener() != null)
                     adapterView.getOnItemClickListener().onItemClick(adapterView, this, position, id);
             }
-        }else {
-            this.getChildAt(0).callOnClick();
         }
     }
 
@@ -506,10 +518,10 @@ public class RippleLayout extends RelativeLayout {
      * Defines a callback called at the end of the Ripple effect
      */
     public interface OnRippleCompleteListener {
-        void onComplete(RippleLayout rippleLayout);
+        void onComplete(RippleLayout initRippleView);
     }
 
-    private enum RippleType {
+    public enum RippleType {
         SIMPLE(0),
         DOUBLE(1),
         RECTANGLE(2);
@@ -522,9 +534,11 @@ public class RippleLayout extends RelativeLayout {
         }
     }
 
-    /** 重置长按状态 */
-    private void resetLongPressState(){
-        mIsLongPress = false;
-        mIsLongPressFinish = true;
+    public boolean isIsEnable() {
+        return mIsEnable;
+    }
+
+    public void setIsEnable(boolean mIsEnable) {
+        this.mIsEnable = mIsEnable;
     }
 }
