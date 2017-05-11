@@ -156,12 +156,15 @@ public class RippleLayout extends RelativeLayout {
                 return true;
             }
         }){
+            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public boolean onTouchEvent(MotionEvent ev) {
                 mActionState = ev.getAction();
                 if(ev.getAction() == MotionEvent.ACTION_UP){
                     setRippleDuration(100);
                     invalidate();
+                } else if(ev.getAction() == MotionEvent.ACTION_CANCEL){
+                    setRippleDuration(100);
                 }
                 return super.onTouchEvent(ev);
             }
@@ -200,10 +203,10 @@ public class RippleLayout extends RelativeLayout {
                 }
                 if (onCompletionListener != null) onCompletionListener.onComplete(this);
                 return;
-            } else{
-
+            } else {
+                canvasHandler.postDelayed(runnable, frameRate);
             }
-            canvasHandler.postDelayed(runnable, frameRate);
+
 
             if (timer == 0)
                 canvas.save();
@@ -239,6 +242,11 @@ public class RippleLayout extends RelativeLayout {
             }
 
             timer++;
+        } else {
+            if(mActionState == MotionEvent.ACTION_UP){
+                sendClickEvent(false);
+                mActionState = MotionEvent.ACTION_CANCEL;
+            }
         }
     }
 
@@ -322,8 +330,7 @@ public class RippleLayout extends RelativeLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        this.onTouchEvent(event);
-        return super.onInterceptTouchEvent(event);
+        return true;
     }
 
     /**
@@ -343,6 +350,8 @@ public class RippleLayout extends RelativeLayout {
                 if (adapterView.getOnItemClickListener() != null)
                     adapterView.getOnItemClickListener().onItemClick(adapterView, this, position, id);
             }
+        } else {
+            this.getChildAt(0).performClick();
         }
     }
 
