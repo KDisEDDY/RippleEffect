@@ -20,16 +20,25 @@
         />
     <com.andexert.library.RippleLayout
         android:id="@+id/rv_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         ripple:rv_color="@color/common_title_shadow"
         ripple:rv_type="rectangle"
         ripple:rv_rippleDuration="300"
         >
-        <Button
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Hello World!"
-            />
+            android:gravity="center"
+            android:padding="10dp"
+            android:background="@drawable/shape_row_item"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hello_world"
+                />
+        </LinearLayout>
+
     </com.andexert.library.RippleLayout>
 </RelativeLayout>
